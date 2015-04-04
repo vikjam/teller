@@ -1,2 +1,2 @@
 # teller
-A wrapper for qsub that implements adds more detailed notifications.
+A wrapper for qsub that adds more detailed notifications.
