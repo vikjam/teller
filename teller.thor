@@ -22,12 +22,23 @@ class Teller < Thor
 
         # Output response
         puts response
-        job_id  = response[/job\ \d+/].gsub('job ', '')
+
+        # Extract job ID
+        jobid  = response[/job\ \d+/].gsub('job ', '')
 
         # Proceed if successful
         exit_status = wait_thr.value
 
         if exit_status.success?
+            File.open('teller-#{jobid}.py', 'w') do f 
+                f.puts('from pushbullet import Pushbullet')
+                f.puts('pbkey = Pushbullet(os.environ["PUSHBULLET_API"])')
+                f.puts(%Q[push = pb.push_note("Equity Job #{jobid} Completed", "Finished: #{qsubcmd}")])
+            end
+
+            nstdin, nstdout, nstderr, nwait_thr = Open3.popen3("qsub -hold_jid #{jobid} -cwd python teller-#{jobid}.py")
+            puts nstdout.gets
+
             notifycmd = %Q[curl --header 'Authorization: Bearer #{pbapi}' -X POST https://api.pushbullet.com/v2/pushes --header 'Content-Type: application/json' --data-binary '{"type": "note", "title": "Equity Job Complete", "body": "#{cmd} completed"}']
             nstdin, nstdout, nstderr, nwait_thr = Open3.popen3("#{notifycmd}")
         end
