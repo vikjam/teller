@@ -7,7 +7,7 @@ require 'open3'
 
 class Teller < Thor
 
-    desc "submit QSUBCMD", "submit QSUBCMD to qsub"
+    desc "submit QSUBCMD", "submit QSUBCMD to qsub and get completed notification"
     def submit(*args)
         # Load information
         pbapi = ENV["PUSHBULLET_API"]
@@ -31,6 +31,13 @@ class Teller < Thor
             notifycmd = %Q[curl --header 'Authorization: Bearer #{pbapi}' -X POST https://api.pushbullet.com/v2/pushes --header 'Content-Type: application/json' --data-binary '{"type": "note", "title": "Equity Job Complete", "body": "#{cmd} completed"}']
             nstdin, nstdout, nstderr, nwait_thr = Open3.popen3("#{notifycmd}")
         end
+    end
+
+    desc "watch JOBID", "received notification of previously submitted JOBID"
+    def watch(jobid)
+        notifycmd = %Q[ruby ]
+        watchcmd  = "qsub -hold_jid #{jobid} -cwd '#{notifycmd}'"
+        puts("#{watchcmd}")
     end
 
 end
