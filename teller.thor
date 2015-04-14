@@ -30,11 +30,11 @@ class Teller < Thor
         exit_status = wait_thr.value
 
         if exit_status.success?
-            File.open('teller-#{jobid}.py', 'w') do f 
+            File.open("teller-#{jobid}.py", 'w') { | f | 
                 f.puts('from pushbullet import Pushbullet')
                 f.puts('pbkey = Pushbullet(os.environ["PUSHBULLET_API"])')
                 f.puts(%Q[push = pb.push_note("Equity Job #{jobid} Completed", "Finished: #{qsubcmd}")])
-            end
+	    }
 
             nstdin, nstdout, nstderr, nwait_thr = Open3.popen3("qsub -hold_jid #{jobid} -cwd python teller-#{jobid}.py")
             puts nstdout.gets
