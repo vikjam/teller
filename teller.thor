@@ -16,7 +16,7 @@ class Teller < Thor
         qsubcmd = args.join(' ')
 
         # Compile string and send to command line
-        cmd                             = "qsub -b y -sync y -cwd #{qsubcmd}"
+        cmd                             = "qsub -b y -cwd #{qsubcmd}"
         stdin, stdout, stderr, wait_thr = Open3.popen3(cmd)
         response                        = stdout.gets
 
@@ -30,17 +30,16 @@ class Teller < Thor
         exit_status = wait_thr.value
 
         if exit_status.success?
-            File.open("teller-#{jobid}.py", 'w') { | f | 
+            File.open("teller-#{jobid}.py", 'w') { | f |
+		f.puts('import os')
                 f.puts('from pushbullet import Pushbullet')
-                f.puts('pbkey = Pushbullet(os.environ["PUSHBULLET_API"])')
+                f.puts('pb = Pushbullet(os.environ["PUSHBULLET_API"])')
                 f.puts(%Q[push = pb.push_note("Equity Job #{jobid} Completed", "Finished: #{qsubcmd}")])
 	    }
 
-            nstdin, nstdout, nstderr, nwait_thr = Open3.popen3("qsub -hold_jid #{jobid} -cwd python teller-#{jobid}.py")
+            nstdin, nstdout, nstderr, nwait_thr = Open3.popen3("qsub -b y -hold_jid #{jobid} -cwd python teller-#{jobid}.py")
             puts nstdout.gets
 
-            notifycmd = %Q[curl --header 'Authorization: Bearer #{pbapi}' -X POST https://api.pushbullet.com/v2/pushes --header 'Content-Type: application/json' --data-binary '{"type": "note", "title": "Equity Job Complete", "body": "#{cmd} completed"}']
-            nstdin, nstdout, nstderr, nwait_thr = Open3.popen3("#{notifycmd}")
         end
     end
 
