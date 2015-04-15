@@ -8,6 +8,7 @@ require 'open3'
 class Teller < Thor
 
     desc "submit QSUBCMD", "submit QSUBCMD to qsub and get completed notification"
+    method_option :attach, :type => :string, :default => nil, :desc => "Attach a file with notification"
     def submit(*args)
         # Load information
         pbapi = ENV["PUSHBULLET_API"]
