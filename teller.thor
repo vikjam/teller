@@ -17,7 +17,7 @@ class Teller < Thor
         qsubcmd = args.join(' ')
 
         # Compile string and send to command line
-        cmd                             = "qsub -b y -cwd #{qsubcmd}"
+        cmd                             = %Q[qsub -b y -cwd #{qsubcmd}]
         stdin, stdout, stderr, wait_thr = Open3.popen3(cmd)
         response                        = stdout.gets
 
